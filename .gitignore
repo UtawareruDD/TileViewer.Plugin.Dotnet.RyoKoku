@@ -1,0 +1,11 @@
+# Build outputs
+bin/
+obj/
+**/bin/
+**/obj/
+**/publish/
+# Visual Studio / Rider files
+.vs/
+*.user
+*.rsuser
+*.suo
