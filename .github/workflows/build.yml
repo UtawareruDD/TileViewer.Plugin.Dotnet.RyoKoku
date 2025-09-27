@@ -2,6 +2,8 @@
 # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: .NET Publish
+env:
+  PROJECT_NAME: TileViewer.Plugin.Dotnet.RyoKoku
 
 on:
   push:
@@ -32,7 +34,7 @@ jobs:
       - name: Publish (${{ matrix.rid }})
         run: >
           dotnet publish
-          ./TileViewer.Plugin.Dotnet.RyoKoku/TileViewer.Plugin.Dotnet.RyoKoku.csproj
+          ./${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}.csproj
           -c Release
           -r ${{ matrix.rid }}
           -p:PublishAot=true
@@ -45,14 +47,14 @@ jobs:
       - name: 7zip release
         run: >
           7z a -t7z -mx=9
-          TileViewer.Plugin.Dotnet.RyoKoku-${{ matrix.rid }}_release.7z
+          ${{ env.PROJECT_NAME }}-${{ matrix.rid }}_release.7z
           ./publish/${{ matrix.rid }}/*
 
       - name: Upload artifact (${{ matrix.rid }})
         uses: actions/upload-artifact@v4
         with:
-          name: TileViewer.Plugin.Dotnet.RyoKoku-${{ matrix.rid }}_release.7z
-          path: TileViewer.Plugin.Dotnet.RyoKoku-${{ matrix.rid }}_release.7z
+          name: ${{ env.PROJECT_NAME }}-${{ matrix.rid }}_release.7z
+          path: ${{ env.PROJECT_NAME }}-${{ matrix.rid }}_release.7z
 
   release:
     needs: build
@@ -61,12 +63,13 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: TileViewer.Plugin.Dotnet.RyoKoku-*
+          pattern: ${{ env.PROJECT_NAME }}-*
           merge-multiple: true
 
       - name: Create/Update GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "TileViewer.Plugin.Dotnet.RyoKoku-*_release.7z"
+          artifacts: "${{ env.PROJECT_NAME }}-*_release.7z"
+          bodyFile: ""
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
