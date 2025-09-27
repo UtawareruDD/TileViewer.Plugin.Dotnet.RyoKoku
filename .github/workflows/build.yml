@@ -1,27 +1,72 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+# For more information see:
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: .NET Publish
 
 on:
-   push: {tags:  ['*'] }
+  push:
+    tags: ['*']
+
 jobs:
   build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: windows-latest
+            rid: win-x64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish (${{ matrix.rid }})
+        run: >
+          dotnet publish
+          ./TileViewer.Plugin.Dotnet.RyoKoku/TileViewer.Plugin.Dotnet.RyoKoku.csproj
+          -c Release
+          -r ${{ matrix.rid }}
+          -p:PublishAot=true
+          -o ./publish/${{ matrix.rid }}
+
+      - name: Install 7zip (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y p7zip-full
+
+      - name: 7zip release
+        run: >
+          7z a -t7z -mx=9
+          TileViewer.Plugin.Dotnet.RyoKoku-${{ matrix.rid }}_release.7z
+          ./publish/${{ matrix.rid }}/*
+
+      - name: Upload artifact (${{ matrix.rid }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: TileViewer.Plugin.Dotnet.RyoKoku-${{ matrix.rid }}_release.7z
+          path: TileViewer.Plugin.Dotnet.RyoKoku-${{ matrix.rid }}_release.7z
+
+  release:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Publish
-      run: cd TileViewer.Plugin.Dotnet.RyoKoku && dotnet publish -p:PublishProfile=win_x64 && dotnet publish -p:PublishProfile=linux_x64
-    - name: 7zip release
-      run : 7z a -t7z -mx=9 TileViewer.Plugin.Dotnet.RyoKoku-x64_release.7z ./TileViewer.Plugin.Dotnet.RyoKoku/publish/
-    - uses: ncipollo/release-action@v1
-      with:
-        artifacts: "TileViewer.Plugin.Dotnet.RyoKoku-x64_release.7z"
-        bodyFile: ""
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: TileViewer.Plugin.Dotnet.RyoKoku-*
+          merge-multiple: true
+
+      - name: Create/Update GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "TileViewer.Plugin.Dotnet.RyoKoku-*_release.7z"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
