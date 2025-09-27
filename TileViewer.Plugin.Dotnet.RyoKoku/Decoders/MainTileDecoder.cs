@@ -10,7 +10,7 @@ namespace TileViewer.ManagedPlugin.Decoders
     ///  dll/so ==> TileDecoderNativeExports(unsafe) ==> ManagedTileViewerPlugin ==> MainTileDecoder
     /// Demonstration of a configurable tile decoder.
     /// Decoder that treats each byte as four packed 2-bit values mapped to individual logical pages.
-    /// PS2 SLPM-66535 Ryu-Koku font.bin decode
+    /// PSP Ryu-Koku font.bin decode
     /// </summary>
     public sealed class MainTileDecoder : IConfigurableTileDecoder
     {
