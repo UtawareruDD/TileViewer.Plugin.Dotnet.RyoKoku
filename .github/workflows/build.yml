@@ -17,9 +17,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Publish
-      run: cd TileViewer.Plugin.Dotnet.RyoKoku && cd TileViewer.Plugin.Dotnet.RyoKoku && dotnet publish -p:PublishProfile=win_x64 && dotnet publish -p:PublishProfile=linux_x64
+      run: cd TileViewer.Plugin.Dotnet.RyoKoku && dotnet publish -p:PublishProfile=win_x64 && dotnet publish -p:PublishProfile=linux_x64
     - name: 7zip release
-      run : 7z a -t7z -mx=9 TileViewer.Plugin.Dotnet.RyoKoku-x64_release.7z ./TileViewer.Plugin.Dotnet.RyoKoku/TileViewer.Plugin.Dotnet.RyoKoku/publish/
+      run : 7z a -t7z -mx=9 TileViewer.Plugin.Dotnet.RyoKoku-x64_release.7z ./TileViewer.Plugin.Dotnet.RyoKoku/publish/
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "TileViewer.Plugin.Dotnet.RyoKoku-x64_release.7z"
